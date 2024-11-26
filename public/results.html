@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChatGPT Evaluation - All Subjects</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #loading {
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .chart-container {
+            width: 80%;
+            margin: 20px auto;
+            text-align: center;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+        }
+        .results-table-container {
+            overflow-x: auto;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .results-table th, .results-table td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word;
+            max-width: 200px;
+        }
+        .results-table th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        .results-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>ChatGPT Evaluation - All Subjects</h1>
+    <div id="loading">Loading data, please wait...</div>
+
+    <!-- Overall Metrics -->
+    <div id="overallMetrics"></div>
+
+    <!-- Chart Containers -->
+    <div class="chart-container" id="historyContainer">
+        <h2>History</h2>
+        <canvas id="historyChart"></canvas>
+        <button onclick="toggleDetails('history')">Show/Hide Details</button>
+        <div id="historyDetails" style="display: none;"></div>
+    </div>
+
+    <div class="chart-container" id="sociologyContainer">
+        <h2>Sociology</h2>
+        <canvas id="sociologyChart"></canvas>
+        <button onclick="toggleDetails('sociology')">Show/Hide Details</button>
+        <div id="sociologyDetails" style="display: none;"></div>
+    </div>
+
+    <div class="chart-container" id="computer_securityContainer">
+        <h2>Computer Security</h2>
+        <canvas id="computer_securityChart"></canvas>
+        <button onclick="toggleDetails('computer_security')">Show/Hide Details</button>
+        <div id="computer_securityDetails" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function fetchData(subject) {
+            const response = await fetch(`/api/${subject}`);
+            const data = await response.json();
+            console.log(`Data for ${subject}:`, data);
+            return data;
+        }
+
+        function renderChart(chartId, correctCount, incorrectCount, accuracyRate, averageResponseTime, subject) {
+            console.log(`Rendering chart for ${subject}: Correct ${correctCount}, Incorrect ${incorrectCount}`);
+            const ctx = document.getElementById(chartId).getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Correct', 'Incorrect'],
+                    datasets: [{
+                        data: [correctCount, incorrectCount],
+                        backgroundColor: ['#36A2EB', '#FF6384'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${subject} - Accuracy: ${accuracyRate.toFixed(2)}%, Avg. Response Time: ${(averageResponseTime / 1000).toFixed(2)}s`
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderResultsTable(containerId, results) {
+            let html = `
+            <div class="results-table-container">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Option A</th>
+                            <th>Option B</th>
+                            <th>Option C</th>
+                            <th>Option D</th>
+                            <th>ChatGPT Answer</th>
+                            <th>Correct Answer</th>
+                            <th>Result</th>
+                            <th>Response Time (s)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach(item => {
+                html += `
+                <tr>
+                    <td>${item.question}</td>
+                    <td>${item.options.A}</td>
+                    <td>${item.options.B}</td>
+                    <td>${item.options.C}</td>
+                    <td>${item.options.D}</td>
+                    <td>${item.chatGPTAnswer}</td>
+                    <td>${item.correctAnswer}</td>
+                    <td class="${item.isCorrect ? 'correct' : 'incorrect'}">
+                        ${item.isCorrect ? 'Correct' : 'Incorrect'}
+                    </td>
+                    <td>${item.responseTime !== null ? (item.responseTime / 1000).toFixed(2) : 'N/A'}</td>
+                </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            </div>
+            `;
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        function toggleDetails(subject) {
+            const detailsDiv = document.getElementById(`${subject}Details`);
+            if (detailsDiv.style.display === 'none') {
+                detailsDiv.style.display = 'block';
+            } else {
+                detailsDiv.style.display = 'none';
+            }
+        }
+
+        async function main() {
+            try {
+                const subjects = ['history', 'sociology', 'computer_security'];
+                let totalCorrect = 0;
+                let totalQuestions = 0;
+                let totalResponseTime = 0;
+
+                for (const subject of subjects) {
+                    const data = await fetchData(subject);
+
+                    totalCorrect += data.correctCount;
+                    totalQuestions += data.totalQuestions;
+                    totalResponseTime += data.averageResponseTime * data.totalQuestions;
+
+                    const formattedSubject = subject.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                    renderChart(
+                        `${subject}Chart`,
+                        data.correctCount,
+                        data.incorrectCount,
+                        data.accuracyRate,
+                        data.averageResponseTime,
+                        formattedSubject
+                    );
+
+                    renderResultsTable(`${subject}Details`, data.results);
+                }
+
+                const overallAccuracyRate = (totalCorrect / totalQuestions) * 100;
+                const overallAverageResponseTime = totalResponseTime / totalQuestions;
+
+                // Display overall metrics
+                const overallMetricsDiv = document.getElementById('overallMetrics');
+                overallMetricsDiv.innerHTML = `
+                    <h2>Overall Performance</h2>
+                    <p>Overall Accuracy Rate: ${overallAccuracyRate.toFixed(2)}%</p>
+                    <p>Overall Average Response Time: ${(overallAverageResponseTime / 1000).toFixed(2)} seconds</p>
+                `;
+
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                document.getElementById('loading').innerText = 'An error occurred while loading data.';
+                console.error(error);
+            }
+        }
+
+        main();
+    </script>
+</body>
+</html>

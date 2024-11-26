@@ -1,0 +1,103 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+  line-height: 1.6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 800px;
+  padding: 20px;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+section {
+  margin-bottom: 40px;
+}
+
+.intro h1 {
+  font-size: 2rem;
+  color: #bb86fc;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.intro p {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #b0b0b0;
+}
+
+.profile h2, .evaluation h2 {
+  color: #03dac6;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.profile p {
+  font-size: 1rem;
+  color: #cfcfcf;
+}
+
+.evaluation h3 {
+  color: #ff8a80;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.evaluation p {
+  font-size: 0.95rem;
+  color: #e0e0e0;
+}
+
+.contact p {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.contact a {
+  color: #bb86fc;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.contact a:hover {
+  color: #03dac6;
+}
+
+a {
+  color: #bb86fc;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #ff8a80;
+}
+
+@media (max-width: 768px) {
+  .intro h1 {
+      font-size: 1.8rem;
+  }
+  .intro p {
+      font-size: 1rem;
+  }
+  .profile h2, .evaluation h2 {
+      font-size: 1.3rem;
+  }
+}
